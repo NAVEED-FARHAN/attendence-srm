@@ -1,0 +1,6 @@
+{
+  "name": "Attendance Management System",
+  "description": "An elegant, Google Classroom-inspired attendance tracking and management dashboard featuring manual roster marking, smart search, and detailed session statistics.",
+  "requestFramePermissions": ["camera"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

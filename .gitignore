@@ -1,0 +1,13 @@
+node_modules/
+build/
+dist/
+coverage/
+.DS_Store
+*.log
+.env*
+!.env.example
+db.json
+tmp_frames/
+face_service/__pycache__/
+face_service/face_embeddings.json
+*.cjs.map

@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: attendance-srm
+    env: docker
+    plan: free
+    region: singapore
+    dockerfilePath: Dockerfile
+    envVars:
+      - key: PORT
+        value: 8000
+      - key: FACE_SERVICE_URL
+        value: http://127.0.0.1:8001
+      - key: FIREBASE_SERVICE_ACCOUNT
+        sync: false
