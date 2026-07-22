@@ -13,38 +13,37 @@ let dbInstance: admin.firestore.Firestore | null = null;
 function parseServiceAccount(raw: string): any {
   let str = raw.trim();
 
-  // Strip wrapping quotes if user enclosed the value in quotes
+  // 1. Strip wrapping quotes if user enclosed the value in quotes
   if ((str.startsWith("'") && str.endsWith("'")) || (str.startsWith('"') && str.endsWith('"'))) {
     str = str.slice(1, -1).trim();
   }
 
-  // Extract from first '{' to last '}' to eliminate trailing junk characters/text
+  // 2. Base64 check: if input is Base64 encoded, decode it first
+  if (!str.startsWith("{") && (str.startsWith("ey") || !str.includes("{"))) {
+    try {
+      const decoded = Buffer.from(str, "base64").toString("utf-8").trim();
+      if (decoded.includes("{")) {
+        str = decoded;
+      }
+    } catch (e) {}
+  }
+
+  // 3. Extract from first '{' to last '}' to eliminate any extra surrounding text/characters
   const firstBrace = str.indexOf("{");
   const lastBrace = str.lastIndexOf("}");
   if (firstBrace !== -1 && lastBrace > firstBrace) {
     str = str.substring(firstBrace, lastBrace + 1);
   }
 
-  // Direct JSON parse attempt
+  // 4. Try standard JSON parse
   try {
     return JSON.parse(str);
   } catch (e1) {
-    // Attempt 2: Fix literal unescaped newlines in private key
+    // 5. Replace literal line breaks inside strings (which break JSON syntax) with \\n
     try {
-      // Escape raw unescaped newlines
       const escaped = str.replace(/[\r\n]+/g, "\\n");
       return JSON.parse(escaped);
     } catch (e2) {
-      // Attempt 3: Base64 decode fallback (in case user base64 encoded the env var)
-      try {
-        const decoded = Buffer.from(raw.trim(), "base64").toString("utf-8");
-        const fBrace = decoded.indexOf("{");
-        const lBrace = decoded.lastIndexOf("}");
-        if (fBrace !== -1 && lBrace > fBrace) {
-          return JSON.parse(decoded.substring(fBrace, lBrace + 1));
-        }
-      } catch (e3) {}
-
       throw new Error(`Failed to parse FIREBASE_SERVICE_ACCOUNT JSON: ${e1}`);
     }
   }
