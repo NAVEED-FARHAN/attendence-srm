@@ -19,6 +19,7 @@ export default defineConfig(() => {
       watch: process.env.DISABLE_HMR === 'true' ? null : {
         ignored: ['**/db.json']
       },
+      allowedHosts: true as const,
       // Proxy API requests to the backend server on port 8000
       proxy: {
         '/api': {

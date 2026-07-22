@@ -18,6 +18,7 @@ done
 echo "🚀 Starting Node Express App on port ${PORT:-8000}..."
 cd /app
 export PORT=${PORT:-8000}
+export NODE_ENV=production
 node dist/server.cjs &
 NODE_PID=$!
 

@@ -10,6 +10,24 @@ export function isFirebaseConfigured(): boolean {
 
 let dbInstance: admin.firestore.Firestore | null = null;
 
+function parseServiceAccount(raw: string): any {
+  let str = raw.trim();
+  if ((str.startsWith("'") && str.endsWith("'")) || (str.startsWith('"') && str.endsWith('"'))) {
+    str = str.slice(1, -1).trim();
+  }
+  try {
+    return JSON.parse(str);
+  } catch (e1) {
+    try {
+      // Fix unescaped newlines in private key if pasted with multiline string
+      const sanitized = str.replace(/(\r\n|\n|\r)/g, "\\n");
+      return JSON.parse(sanitized);
+    } catch (e2) {
+      throw new Error(`Failed to parse FIREBASE_SERVICE_ACCOUNT JSON: ${e1}`);
+    }
+  }
+}
+
 export function getFirestoreDB(): admin.firestore.Firestore | null {
   if (dbInstance) return dbInstance;
   if (!isFirebaseConfigured()) return null;
@@ -17,7 +35,7 @@ export function getFirestoreDB(): admin.firestore.Firestore | null {
   try {
     if (admin.apps.length === 0) {
       if (process.env.FIREBASE_SERVICE_ACCOUNT) {
-        const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+        const serviceAccount = parseServiceAccount(process.env.FIREBASE_SERVICE_ACCOUNT);
         admin.initializeApp({
           credential: admin.credential.cert(serviceAccount)
         });

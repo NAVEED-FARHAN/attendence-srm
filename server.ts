@@ -1479,10 +1479,12 @@ app.post("/api/reset", (req, res) => {
 
 // Vite Dev Server / Static Production Setup
 async function startServer() {
+  const distIndex = path.join(process.cwd(), "dist", "index.html");
+  const isProduction = process.env.NODE_ENV === "production" || fs.existsSync(distIndex);
 
-  if (process.env.NODE_ENV !== "production") {
+  if (!isProduction) {
     const vite = await createViteServer({
-      server: { middlewareMode: true },
+      server: { middlewareMode: true, allowedHosts: true },
       appType: "spa",
     });
     app.use(vite.middlewares);
@@ -1490,7 +1492,7 @@ async function startServer() {
     const distPath = path.join(process.cwd(), "dist");
     app.use(express.static(distPath));
     app.get("*", (req, res) => {
-      res.sendFile(path.join(distPath, "index.html"));
+      res.sendFile(distIndex);
     });
   }
 
