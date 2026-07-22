@@ -10,6 +10,15 @@ export function isFirebaseConfigured(): boolean {
 
 let dbInstance: admin.firestore.Firestore | null = null;
 
+function sanitizeControlChars(input: string): string {
+  return input.replace(/[\u0000-\u001F]/g, (ch) => {
+    if (ch === "\n") return "\\n";
+    if (ch === "\r") return "";
+    if (ch === "\t") return "\\t";
+    return "\\u" + ("0000" + ch.charCodeAt(0).toString(16)).slice(-4);
+  });
+}
+
 function parseServiceAccount(raw: string): any {
   let str = raw.trim();
 
@@ -39,10 +48,10 @@ function parseServiceAccount(raw: string): any {
   try {
     return JSON.parse(str);
   } catch (e1) {
-    // 5. Replace literal line breaks inside strings (which break JSON syntax) with \\n
+    // 5. Sanitize forbidden control characters (literal newlines/tabs inside string literals)
     try {
-      const escaped = str.replace(/[\r\n]+/g, "\\n");
-      return JSON.parse(escaped);
+      const sanitized = sanitizeControlChars(str);
+      return JSON.parse(sanitized);
     } catch (e2) {
       throw new Error(`Failed to parse FIREBASE_SERVICE_ACCOUNT JSON: ${e1}`);
     }
